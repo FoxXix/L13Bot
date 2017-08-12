@@ -1,20 +1,20 @@
-<img align="right" src="http://bwmarrin.github.io/discordgo/img/discordgo.png">
+<img align="right" src="https://github.com/FoxXix/L13Bot/blob/master/l131.png">
 
-## DiscordGo Airhorn Example
+## Lucky 13 Gaming Bot
 
-This example demonstrates how to utilize DiscordGo to listen for an !airhorn
-command in a channel and then play a sound to that user's current voice channel.
+This bot takes all the fundamental commands from [Airhorn bot](https://airhorn.solutions)
+and adds even more functionality through channel commands.
 
-**Join [Discord Gophers](https://discord.gg/0f1SbxBZjYoCtNPP)
-Discord chat channel for support.**
+**Check out the [Lucky 13 Gaming](http://lucky-13gaming.com/) website or our
+[Discord chat channel](https://discord.gg/DBXzhdv) for support.**
 
 ### Build
 
 This assumes you already have a working Go environment setup and that
 DiscordGo is correctly installed on your system.
 
-From within the airhorn example folder, run the below command to compile the
-example.
+From within the L13Bot folder, run the below command to compile the
+project.
 
 ```sh
 go build
@@ -23,20 +23,20 @@ go build
 ### Usage
 
 ```
-Usage of ./airhorn:
+Usage of ./L13Bot:
   -t string
         Bot Token
 ```
 
-The below example shows how to start the bot from the airhorn example folder.
+The below example shows how to start the bot from the L13Bot folder.
 
 ```sh
-./airhorn -t YOUR_BOT_TOKEN
+./L13Bot -t YOUR_BOT_TOKEN
 ```
 
 ### Creating sounds
 
-Airhorn bot uses [DCA](https://github.com/bwmarrin/dca) files, which are 
+L13 Bot uses [DCA](https://github.com/bwmarrin/dca) files, which are 
 pre-computed files that are easy to send to Discord.
 
 If you would like to create your own DCA files, please use:
