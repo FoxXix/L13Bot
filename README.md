@@ -1,4 +1,4 @@
-<img align="right" src="https://github.com/FoxXix/L13Bot/blob/master/l131.png">
+<img align="right" src="https://raw.githubusercontent.com/FoxXix/FoxXix.github.io/master/L13/img/l131.png">
 
 ## Lucky 13 Gaming Bot
 
