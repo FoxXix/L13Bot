@@ -18,15 +18,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/bwmarrin/discordgo"
 	"github.com/dustin/go-humanize"
-	//redis "gopkg.in/redis.v3"
 )
 
 var (
 	// discordgo session
 	discord *discordgo.Session
-
-	// Redis client connection (used for stats)
-	//rcli *redis.Client
 
 	// Map of Guild id's to *Play channels, used for queuing and rate-limiting guilds
 	queues map[string]chan *Play = make(map[string]chan *Play)
@@ -433,7 +429,7 @@ func onGuildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 
 	for _, channel := range event.Guild.Channels {
 		if channel.ID == event.Guild.ID {
-			s.ChannelMessageSend(channel.ID, "**AIRHORN BOT READY FOR HORNING. TYPE `!AIRHORN` WHILE IN A VOICE CHANNEL TO ACTIVATE**")
+			s.ChannelMessageSend(channel.ID, "**L13BOT READY TO ACTIVATE**")
 			return
 		}
 	}
@@ -520,7 +516,6 @@ func handleBotControlMessages(s *discordgo.Session, m *discordgo.MessageCreate, 
 		airhornBomb(m.ChannelID, g, utilGetMentioned(s, m), parts[3])
 	} else if scontains(parts[1], "aps") {
 		s.ChannelMessageSend(m.ChannelID, ":ok_hand: give me a sec m8")
-		//go calculateAirhornsPerSecond(m.ChannelID)
 	}
 }
 
@@ -643,7 +638,7 @@ func main() {
 	}
 
 	// We're running!
-	log.Info("AIRHORNBOT is ready to horn it up.")
+	log.Info("L13Bot is now dank.")
 
 	// Wait for a signal to quit
 	c := make(chan os.Signal, 1)
