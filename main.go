@@ -379,6 +379,7 @@ func playSound(play *Play, vc *discordgo.VoiceConnection) (err error) {
 				"error": err,
 			}).Error("Failed to play sound")
 			delete(queues, play.GuildID)
+			vc.Disconnect()
 			return err
 		}
 	}
