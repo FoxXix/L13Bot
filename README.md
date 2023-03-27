@@ -5,8 +5,7 @@
 This bot takes all the fundamental commands from [Airhorn bot](https://airhorn.solutions)
 and adds even more functionality through channel commands.
 
-**Check out the [Lucky 13 Gaming](http://lucky-13gaming.com/) website or our
-[Discord chat channel](https://discord.gg/DBXzhdv) for support.**
+**Check out the [Lucky 13 Gaming Discord chat channel](https://discord.gg/kCc4EWTn4D) for support.**
 
 ### Build
 
@@ -14,11 +13,13 @@ This assumes you already have a working Go environment setup and that
 DiscordGo is correctly installed on your system. If not go [here to install GO](https://go.dev/doc/install)
 and follow instructions [here](https://pkg.go.dev/github.com/bwmarrin/discordgo#section-readme) to setup DiscordGo.
 
-From within the L13Bot folder, run the below command to compile the
+From within the L13Bot folder, run the below command to grab the dependencies and compile the
 project.
 
 ```sh
-go build
+go mod init <project_name>  # create go.mod module
+go mod tidy  # update dependencies
+go build  # compile project
 ```
 
 ### Usage
@@ -35,7 +36,7 @@ The below example shows how to start the bot from the L13Bot folder.
 ./L13Bot -t YOUR_BOT_TOKEN
 ```
 
-### Creating sounds
+### Creating sounds (deprecated links)
 
 L13 Bot uses [DCA](https://github.com/bwmarrin/dca) files, which are 
 pre-computed files that are easy to send to Discord.
