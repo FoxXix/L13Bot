@@ -11,7 +11,8 @@ and adds even more functionality through channel commands.
 ### Build
 
 This assumes you already have a working Go environment setup and that
-DiscordGo is correctly installed on your system.
+DiscordGo is correctly installed on your system. If not go [here to install GO](https://go.dev/doc/install)
+and follow instructions [here](https://pkg.go.dev/github.com/bwmarrin/discordgo#section-readme) to setup DiscordGo.
 
 From within the L13Bot folder, run the below command to compile the
 project.
