@@ -523,7 +523,7 @@ func handleBotControlMessages(s *discordgo.Session, m *discordgo.MessageCreate, 
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if len(m.Content) <= 0 || (m.Content[0] != '!' && len(m.Mentions) < 1) {
 		return
-	}
+	}	
 
 	msg := strings.Replace(m.ContentWithMentionsReplaced(), s.State.Ready.User.Username, "username", 1)
 	parts := strings.Split(strings.ToLower(msg), " ")
@@ -558,6 +558,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		if mentioned {
+			s.MessageReactionAdd(m.ChannelID, m.ID, ":ok_hand:")
 			handleBotControlMessages(s, m, parts, guild)
 		}
 		return
@@ -630,7 +631,7 @@ func main() {
 	discord.AddHandler(onGuildCreate)
 	discord.AddHandler(onMessageCreate)
 	
-	discord.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildVoiceStates
+	discord.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildVoiceStates | discordgo.IntentGuildMessageReactions
 
 	err = discord.Open()
 	if err != nil {
