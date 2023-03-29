@@ -507,11 +507,11 @@ func handleBotControlMessages(s *discordgo.Session, m *discordgo.MessageCreate, 
 		displayBotStats(m.ChannelID)
 	} else if scontains(parts[1], "stats") {
 		if len(m.Mentions) >= 2 {
-			displayUserStats(m.ChannelID, utilGetMentioned(s, m).ID)
+			//displayUserStats(m.ChannelID, utilGetMentioned(s, m).ID)
 		} else if len(parts) >= 3 {
-			displayUserStats(m.ChannelID, parts[2])
+			//displayUserStats(m.ChannelID, parts[2])
 		} else {
-			displayServerStats(m.ChannelID, g.ID)
+			//displayServerStats(m.ChannelID, g.ID)
 		}
 	} else if scontains(parts[1], "bomb") && len(parts) >= 4 {
 		airhornBomb(m.ChannelID, g, utilGetMentioned(s, m), parts[3])
