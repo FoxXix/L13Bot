@@ -516,7 +516,12 @@ func handleBotControlMessages(s *discordgo.Session, m *discordgo.MessageCreate, 
 	} else if scontains(parts[1], "bomb") && len(parts) >= 4 {
 		airhornBomb(m.ChannelID, g, utilGetMentioned(s, m), parts[3])
 	} else if scontains(parts[1], "aps") {
-		s.ChannelMessageSend(m.ChannelID, ":ok_hand: give me a sec m8")
+		_, err = s.ChannelMessageSend(m.ChannelID, ":ok_hand: give me a sec m8")
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Fatal("Failed to send aps message")
+		}
 	}
 }
 
@@ -629,6 +634,8 @@ func main() {
 	discord.AddHandler(onReady)
 	discord.AddHandler(onGuildCreate)
 	discord.AddHandler(onMessageCreate)
+	
+	discord.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildVoiceStates
 
 	err = discord.Open()
 	if err != nil {
