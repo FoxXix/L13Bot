@@ -12,12 +12,13 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"text/tabwriter"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/bwmarrin/discordgo"
 	"github.com/dustin/go-humanize"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -504,6 +505,7 @@ func airhornBomb(cid string, guild *discordgo.Guild, user *discordgo.User, cs st
 // Handles bot operator messages, should be refactored (lmao)
 func handleBotControlMessages(s *discordgo.Session, m *discordgo.MessageCreate, parts []string, g *discordgo.Guild) {
 	if scontains(parts[1], "status") {
+		log.Info("Displaying bot stats...")
 		displayBotStats(m.ChannelID)
 	} else if scontains(parts[1], "stats") {
 		if len(m.Mentions) >= 2 {
@@ -514,21 +516,23 @@ func handleBotControlMessages(s *discordgo.Session, m *discordgo.MessageCreate, 
 			//displayServerStats(m.ChannelID, g.ID)
 		}
 	} else if scontains(parts[1], "bomb") && len(parts) >= 4 {
+		log.Info("Bombs away...")
 		airhornBomb(m.ChannelID, g, utilGetMentioned(s, m), parts[3])
 	} else if scontains(parts[1], "aps") {
+		log.Info("Attempting to send channel message...")
 		s.ChannelMessageSend(m.ChannelID, ":ok_hand: give me a sec m8")
 	}
 }
 
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if len(m.Content) <= 0 || (m.Content[0] != '!' && len(m.Mentions) < 1) {
+	if m.Author.ID == s.State.User.ID || len(m.Content) <= 0 || (m.Content[0] != '!' && len(m.Mentions) < 1) {
 		return
-	}	
+	}
 
 	msg := strings.Replace(m.ContentWithMentionsReplaced(), s.State.Ready.User.Username, "username", 1)
 	parts := strings.Split(strings.ToLower(msg), " ")
 
-	channel, _ := discord.State.Channel(m.ChannelID)
+	channel, _ := s.State.Channel(m.ChannelID)
 	if channel == nil {
 		log.WithFields(log.Fields{
 			"channel": m.ChannelID,
@@ -537,7 +541,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	guild, _ := discord.State.Guild(channel.GuildID)
+	guild, _ := s.State.Guild(channel.GuildID)
 	if guild == nil {
 		log.WithFields(log.Fields{
 			"guild":   channel.GuildID,
@@ -558,16 +562,15 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		if mentioned {
+			log.Info("L13Bot was mentioned by: ", m.Author.Username)
 			s.MessageReactionAdd(m.ChannelID, m.ID, ":ok_hand:")
 			handleBotControlMessages(s, m, parts, guild)
 		}
 		return
 	}
 
-	// Find the collection for the command we got
 	for _, coll := range COLLECTIONS {
 		if scontains(parts[0], coll.Commands...) {
-
 			// If they passed a specific sound effect, find and select that (otherwise play nothing)
 			var sound *Sound
 			if len(parts) > 1 {
@@ -590,7 +593,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func main() {
 	var (
-		Token      = flag.String("t", "", "Discord Authentication Token")
+		Token = flag.String("t", "", "Discord Authentication Token")
 		//Redis      = flag.String("r", "", "Redis Connection String")
 		Shard      = flag.String("s", "", "Shard ID")
 		ShardCount = flag.String("c", "", "Number of shards")
@@ -630,7 +633,7 @@ func main() {
 	discord.AddHandler(onReady)
 	discord.AddHandler(onGuildCreate)
 	discord.AddHandler(onMessageCreate)
-	
+
 	discord.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildVoiceStates | discordgo.IntentGuildMessageReactions
 
 	err = discord.Open()
@@ -646,6 +649,8 @@ func main() {
 
 	// Wait for a signal to quit
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-c
+
+	discord.Close()
 }
