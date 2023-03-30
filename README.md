@@ -13,13 +13,10 @@ This assumes you already have a working Go environment setup and that
 DiscordGo is correctly installed on your system. If not go [here to install GO](https://go.dev/doc/install)
 and follow instructions [here](https://pkg.go.dev/github.com/bwmarrin/discordgo#section-readme) to setup DiscordGo.
 
-From within the L13Bot folder, run the below commands to grab the dependencies and compile the
-project. I used "L13Bot" for the project_name, but it can be anything you like.
+From within the L13Bot folder, run the below command to compile the project.
 
 ```sh
-go mod init <project_name>  # create go.mod module
-go mod tidy  # update dependencies
-go build  # compile project
+go build
 ```
 
 ### Usage
