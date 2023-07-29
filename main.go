@@ -374,7 +374,6 @@ func playSound(play *Play, vc *discordgo.VoiceConnection) (err error) {
 
 	if vc == nil {
 		vc, err = discord.ChannelVoiceJoin(play.GuildID, play.ChannelID, false, false)
-		// vc.Receive = false
 		if err != nil {
 			log.WithFields(log.Fields{
 				"error": err,
@@ -482,7 +481,11 @@ func utilGetMentioned(s *discordgo.Session, m *discordgo.MessageCreate) *discord
 
 func airhornBomb(cid string, guild *discordgo.Guild, user *discordgo.User, cs string) {
 	count, _ := strconv.Atoi(cs)
-	discord.ChannelMessageSend(cid, ":ok_hand:"+strings.Repeat(":trumpet:", count))
+	_, err := discord.ChannelMessageSend(cid, ":ok_hand:"+strings.Repeat(":trumpet:", count))
+	if err != nil {
+		fmt.Println("Error sending message:", err)
+		return
+	}
 
 	// Cap it at something
 	if count > 100 {
@@ -614,7 +617,7 @@ func main() {
 
 	// Create a discord session
 	log.Info("Starting discord session...")
-	discord, err = discordgo.New(*Token)
+	discord, err = discordgo.New("Bot " + *Token)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
