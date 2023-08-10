@@ -418,12 +418,12 @@ func playSound(play *Play, vc *discordgo.VoiceConnection) (err error) {
 	return nil
 }
 
-func onReady(s *discordgo.Session, event *discordgo.Ready) {
+func ready(s *discordgo.Session, event *discordgo.Ready) {
 	log.Info("Recieved READY payload")
 	s.UpdateGameStatus(0, "dank memes")
 }
 
-func onGuildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
+func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	if event.Guild.Unavailable {
 		return
 	}
@@ -431,6 +431,76 @@ func onGuildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	for _, channel := range event.Guild.Channels {
 		if channel.ID == event.Guild.ID {
 			s.ChannelMessageSend(channel.ID, "**L13BOT READY TO ACTIVATE**")
+			return
+		}
+	}
+}
+
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID || len(m.Content) <= 0 || (m.Content[0] != '!' && len(m.Mentions) < 1) {
+		return
+	}
+
+	msg := strings.Replace(m.ContentWithMentionsReplaced(), s.State.Ready.User.Username, "username", 1)
+	parts := strings.Split(strings.ToLower(msg), " ")
+
+	channel, _ := s.State.Channel(m.ChannelID)
+	if channel == nil {
+		log.WithFields(log.Fields{
+			"channel": m.ChannelID,
+			"message": m.ID,
+		}).Warning("Failed to grab channel")
+		return
+	}
+
+	guild, _ := s.State.Guild(channel.GuildID)
+	if guild == nil {
+		log.WithFields(log.Fields{iii
+			"guild":   channel.GuildID,
+			"channel": channel,
+			"message": m.ID,
+		}).Warning("Failed to grab guild")
+		return
+	}
+
+	// If this is a mention, it should come from the owner (otherwise we don't care)
+	if len(m.Mentions) > 0 && m.Author.ID == OWNER && len(parts) > 0 {
+		mentioned := false
+		for _, mention := range m.Mentions {
+			mentioned = (mention.ID == s.State.Ready.User.ID)
+			if mentioned {
+				break
+			}
+		}
+
+		if mentioned {
+			log.Info("L13Bot was mentioned by: ", m.Author.Username)
+			emojis, err := s.GuildEmojis(m.GuildID)
+			if len(emojis) > 0 {
+				s.MessageReactionAdd(m.ChannelID, m.ID, emojis[0].APIName())
+			}
+			handleBotControlMessages(s, m, parts, guild)
+		}
+		return
+	}
+
+	for _, coll := range COLLECTIONS {
+		if scontains(parts[0], coll.Commands...) {
+			// If they passed a specific sound effect, find and select that (otherwise play nothing)
+			var sound *Sound
+			if len(parts) > 1 {
+				for _, s := range coll.Sounds {
+					if parts[1] == s.Name {
+						sound = s
+					}
+				}
+
+				if sound == nil {
+					return
+				}
+			}
+
+			go enqueuePlay(m.Author, guild, coll, sound)
 			return
 		}
 	}
@@ -527,73 +597,6 @@ func handleBotControlMessages(s *discordgo.Session, m *discordgo.MessageCreate, 
 	}
 }
 
-func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID || len(m.Content) <= 0 || (m.Content[0] != '!' && len(m.Mentions) < 1) {
-		return
-	}
-
-	msg := strings.Replace(m.ContentWithMentionsReplaced(), s.State.Ready.User.Username, "username", 1)
-	parts := strings.Split(strings.ToLower(msg), " ")
-
-	channel, _ := s.State.Channel(m.ChannelID)
-	if channel == nil {
-		log.WithFields(log.Fields{
-			"channel": m.ChannelID,
-			"message": m.ID,
-		}).Warning("Failed to grab channel")
-		return
-	}
-
-	guild, _ := s.State.Guild(channel.GuildID)
-	if guild == nil {
-		log.WithFields(log.Fields{
-			"guild":   channel.GuildID,
-			"channel": channel,
-			"message": m.ID,
-		}).Warning("Failed to grab guild")
-		return
-	}
-
-	// If this is a mention, it should come from the owner (otherwise we don't care)
-	if len(m.Mentions) > 0 && m.Author.ID == OWNER && len(parts) > 0 {
-		mentioned := false
-		for _, mention := range m.Mentions {
-			mentioned = (mention.ID == s.State.Ready.User.ID)
-			if mentioned {
-				break
-			}
-		}
-
-		if mentioned {
-			log.Info("L13Bot was mentioned by: ", m.Author.Username)
-			s.MessageReactionAdd(m.ChannelID, m.ID, ":ok_hand:")
-			handleBotControlMessages(s, m, parts, guild)
-		}
-		return
-	}
-
-	for _, coll := range COLLECTIONS {
-		if scontains(parts[0], coll.Commands...) {
-			// If they passed a specific sound effect, find and select that (otherwise play nothing)
-			var sound *Sound
-			if len(parts) > 1 {
-				for _, s := range coll.Sounds {
-					if parts[1] == s.Name {
-						sound = s
-					}
-				}
-
-				if sound == nil {
-					return
-				}
-			}
-
-			go enqueuePlay(m.Author, guild, coll, sound)
-			return
-		}
-	}
-}
-
 func main() {
 	var (
 		Token = flag.String("t", "", "Discord Authentication Token")
@@ -633,11 +636,11 @@ func main() {
 		discord.ShardCount = 1
 	}
 
-	discord.AddHandler(onReady)
-	discord.AddHandler(onGuildCreate)
-	discord.AddHandler(onMessageCreate)
+	discord.AddHandler(ready)
+	discord.AddHandler(guildCreate)
+	discord.AddHandler(messageCreate)
 
-	discord.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildVoiceStates | discordgo.IntentGuildMessageReactions
+	discord.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 
 	err = discord.Open()
 	if err != nil {
@@ -648,7 +651,7 @@ func main() {
 	}
 
 	// We're running!
-	log.Info("L13Bot is now dank.")
+	log.Info("L13Bot is now dank. Press CTRL-C to exit.")
 
 	// Wait for a signal to quit
 	c := make(chan os.Signal, 1)
